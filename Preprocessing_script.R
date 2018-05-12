@@ -5,7 +5,7 @@ setwd("/home/kishore/Documents/Earth_quake_project/")
 #install.packages("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr","dplyr", "tidyr",
 # "arules", "arulesViz", "caret", "foreign", "nnet")
 Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr",
-                         "arules", "arulesViz", "caret", "foreign", "nnet", "party")
+                         "arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot")
 lapply(Packages_tobe_loaded, library, character.only = TRUE)
 EQ_Train_Values = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_values.csv"), header = TRUE)
 EQ_Train_Labels = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_labels.csv"), header = TRUE)
@@ -45,21 +45,40 @@ EQ_Train_Dataset$superstructure_material_type_numeric_values = as.numeric(EQ_Tra
 EQ_Train_Dataset$rowID = NULL
 EQ_Train_Dataset$Secondary_use_numeric_values = NULL
 
+Damage_1 = subset(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 1)
+Damage_2 = subset(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 2)
+Damage_3 = subset(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 3)
 # EQ_Train_Dataset$damage_level_name = ifelse(EQ_Train_Dataset$damage_grade == "1", "Lowest Damage",
 #                                      ifelse(EQ_Train_Dataset$damage_grade == "2", "Medium Damage", "Almost Destroyed"))
-#ggplot(data = EQ_Train_Dataset) + geom_bar(mapping = aes(x = superstructure_material_type, fill = damage_level_name)) + ggtitle("Building Material vs Damage level") + xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+
+p1 = ggplot(data = Damage_1) + geom_bar(mapping = aes(x = geo_level_1_id, fill = damage_grade)) + 
+  xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+
+p2 = second = ggplot(data = Damage_2) + geom_bar(mapping = aes(x = geo_level_1_id, fill = damage_grade)) + 
+  xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+
+p3 = ggplot(data = Damage_3) + geom_bar(mapping = aes(x = geo_level_1_id, fill = damage_grade)) + 
+  xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+
+graph = plot_grid(p1, p2, p3)
+print(graph)
+
+colnames(EQ_Train_Dataset$has_superstructure_adobe_mud) = c("Adobe_Mud")
+View(EQ_Train_Dataset)
+#multiplot(p1, p2, p3, cols = 3)
+
 cat("\014")
 
 ################                    Association Analysis                    ###############################
 
-EQ_Train_Dataset$damage_grade = as.factor(EQ_Train_Dataset$damage_grade)
-EQ_Train_Dataset$geo_level_1_id = as.factor(EQ_Train_Dataset$geo_level_1_id)
-EQ_Train_Dataset$age = as.factor(EQ_Train_Dataset$age)
-EQ_Train_Dataset$height = as.factor(EQ_Train_Dataset$height)
-EQ_Train_Dataset$area = as.factor(EQ_Train_Dataset$area)
-EQ_Train_Dataset$roof_type = as.factor(EQ_Train_Dataset$roof_type)
-EQ_Train_Dataset$other_floor_type = as.factor(EQ_Train_Dataset$other_floor_type)
-EQ_Train_Dataset$position = as.factor(EQ_Train_Dataset$position)
+# EQ_Train_Dataset$damage_grade = as.factor(EQ_Train_Dataset$damage_grade)
+# EQ_Train_Dataset$geo_level_1_id = as.factor(EQ_Train_Dataset$geo_level_1_id)
+# EQ_Train_Dataset$age = as.factor(EQ_Train_Dataset$age)
+# EQ_Train_Dataset$height = as.factor(EQ_Train_Dataset$height)
+# EQ_Train_Dataset$area = as.factor(EQ_Train_Dataset$area)
+# EQ_Train_Dataset$roof_type = as.factor(EQ_Train_Dataset$roof_type)
+# EQ_Train_Dataset$other_floor_type = as.factor(EQ_Train_Dataset$other_floor_type)
+# EQ_Train_Dataset$position = as.factor(EQ_Train_Dataset$position)
 # ref_data = subset(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == "3")
 #categorical_columns = EQ_Train_Dataset[,c("land_surface_condition", "foundation_type", "roof_type", "position","damage_grade")] 
 # Association_between_columns = eclat(categorical_columns, parameter = list(supp = 0.3, maxlen = 100))
@@ -85,3 +104,11 @@ EQ_Train_Dataset$position = as.factor(EQ_Train_Dataset$position)
   model = multinom(damage_grade ~ ., data = train_data)
  prediction_model = predict(model, test_data)
  confusionMatrix(prediction_model, test_data$damage_grade)
+ 
+ 
+ 
+ 
+ 
+ #################################################################################################################################################################
+ 
+
