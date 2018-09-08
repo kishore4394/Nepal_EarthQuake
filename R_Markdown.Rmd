@@ -36,12 +36,6 @@ Based on aspects of building location and construction, the goal of the project 
 This survey is one of the largest post-disaster datasets ever collected, containing valuable information on earthquake impacts, household conditions, and socio-economic-demographic statistics.
 The data was initially dumped in GitHub and then imported into R and converted into dataframe.
 ```{r S3, eval = TRUE, echo = FALSE, include = FALSE, message=FALSE}
-# Sys.setenv("AWS_ACCESS_KEY_ID" = "AKIAIBWN7DL2EYGJCQMA", 
-#            "AWS_SECRET_ACCESS_KEY" = "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")
-# bucketlist()
-# list_the_available_dataset = get_bucket("earthquake-project-bucket")
-# raw_train_values = get_object(bucket = "earthquake-project-bucket", object = "train_values.csv")
-# raw_train_label = get_object(bucket = "earthquake-project-bucket", object = "train_labels.csv")
 EQ_Train_Values = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_values.csv"), header = TRUE)
 EQ_Train_Labels = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_labels.csv"), header = TRUE)
 EQ_Train_Dataset = merge(EQ_Train_Values, EQ_Train_Labels, by = "building_id")
