@@ -26,7 +26,7 @@ rm(list = ls())
 ### <font color="FireBrick">__Libraries used__</font>
 "aws.s3", "RCurl", " polycor", "doSNOW", "dplyr", "caret", "nnet", "tidyr", "data.table", "ggplot2"
 ```{r libraries to be loaded, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
-Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot", "tidyverse")
+Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot", "tidyverse", "e1071")
 lapply(Packages_tobe_loaded, library, character.only = TRUE)
 ```
 ### <font color="FireBrick">__Introducing Data__</font>
@@ -253,7 +253,9 @@ Percentage_distribution_damage_level = prop.table(table(Processed_Dataset$damage
 summary(Processed_Dataset)
 ```
 
-<!-- ### <font color="FireBrick">__Prediction__</font> -->
+### <font color="FireBrick">__Prediction__</font> 
+
+Results with Confusion matrix
 ```{r, eval=FALSE, echo=FALSE}
 split_index = createDataPartition(y = Processed_Dataset$damage_grade, p = 0.7, list = FALSE)
 train_data = Processed_Dataset[split_index,]
@@ -262,11 +264,7 @@ test_data = Processed_Dataset[-split_index,]
 set.seed(54321)
 trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
 set.seed(3033)
-model = caret::train(damage_grade ~ ., data = train_data, method = "svmLinear", trControl = trctrl, preProcess = c("center","scale"), tuneLength = 10)
-# testing_prediction = round(predict(model, newdata = test_data))
-# #testing_prediction[testing_prediction==-1] = 0
-# confusionMatrix(testing_prediction, test_data$damage_grade)
-# dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "rpart", parms = list(split = "information"),)
+dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "rpart", parms = list(split = "information"))
 # prediction = round(predict(dtree_fit, newdata = test_data))
 # confusionMatrix(prediction, test_data$damage_grade)
 #dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "M5", trControl = trctrl, tuneLength = 10)
