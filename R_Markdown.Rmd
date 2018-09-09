@@ -10,13 +10,18 @@ output:
 body{text-align: justify}
 </style>
 
-<!-- This is an R Markdown document. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+This is an R Markdown document. For more details on code Kindly look at my Github
+
+### https://github.com/kishore4394/Nepal_EarthQuake/blob/master/R_Markdown.Rmd
+
+*DISCLAIMER:*
+The Main goal of this project is to predict the Damage level of the building based on different explanatory variables, So far description for all the explanatory variables are included in this presentation, Research on certain variables are still ongoing for description.
 
 ### <font color="FireBrick">__Initial cleaning of environment__</font>
 
 
-cat("\014") /*this command is used to clear the console*/ </br>
-rm(list = ls()) /*this command is used to clear the environmental variables*/
+cat("\014")         /*this command is used to clear the console*/ </br>
+rm(list = ls())     /*this command is used to clear the environmental variables*/
 ```{r setup, eval = TRUE, include = FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 cat("\014")
@@ -26,7 +31,7 @@ rm(list = ls())
 ### <font color="FireBrick">__Libraries used__</font>
 "aws.s3", "RCurl", " polycor", "doSNOW", "dplyr", "caret", "nnet", "tidyr", "data.table", "ggplot2"
 ```{r libraries to be loaded, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
-Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot", "tidyverse", "e1071")
+Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot", "tidyverse", "e1071", "randomForest")
 lapply(Packages_tobe_loaded, library, character.only = TRUE)
 ```
 ### <font color="FireBrick">__Introducing Data__</font>
@@ -256,18 +261,21 @@ summary(Processed_Dataset)
 ### <font color="FireBrick">__Prediction__</font> 
 
 Results with Confusion matrix
-```{r, eval=FALSE, echo=FALSE}
+```{r, eval=TRUE, echo=FALSE}
 split_index = createDataPartition(y = Processed_Dataset$damage_grade, p = 0.7, list = FALSE)
 train_data = Processed_Dataset[split_index,]
 test_data = Processed_Dataset[-split_index,]
 
 set.seed(54321)
 trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
-set.seed(3033)
+set.seed(7)
+metric = "Accuracy"
+mtry = sqrt(ncol(train_data))
+tunegrid = expand.grid(.mtry = mtry)
 dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "rpart", parms = list(split = "information"))
-# prediction = round(predict(dtree_fit, newdata = test_data))
-# confusionMatrix(prediction, test_data$damage_grade)
+#rf_method = caret::train(damage_grade ~., data = train_data, method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trctrl)
+#print(rf_method)
 #dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "M5", trControl = trctrl, tuneLength = 10)
-prediction = predict(dtree_fit, newdata = test_data)
-confusionMatrix(prediction, test_data$damage_grade)
+ prediction = predict(dtree_fit, newdata = test_data)
+ confusionMatrix(prediction, test_data$damage_grade)
 ```
