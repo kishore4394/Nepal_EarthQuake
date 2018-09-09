@@ -17,7 +17,7 @@ body{text-align: justify}
 
 cat("\014") /*this command is used to clear the console*/ </br>
 rm(list = ls()) /*this command is used to clear the environmental variables*/
-```{r setup, eval = TRUE, echo = FALSE, include = FALSE, warning=FALSE, message=FALSE}
+```{r setup, eval = TRUE, include = FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 cat("\014")
 rm(list = ls())
@@ -26,7 +26,7 @@ rm(list = ls())
 ### <font color="FireBrick">__Libraries used__</font>
 "aws.s3", "RCurl", " polycor", "doSNOW", "dplyr", "caret", "nnet", "tidyr", "data.table", "ggplot2"
 ```{r libraries to be loaded, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
-Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot")
+Packages_tobe_loaded = c("aws.s3", "RCurl", "data.table", "polycor", "party", "ggplot2", "doSNOW", "plyr", "dplyr", "tidyr","arules", "arulesViz", "caret", "foreign", "nnet", "party", "cowplot", "tidyverse")
 lapply(Packages_tobe_loaded, library, character.only = TRUE)
 ```
 ### <font color="FireBrick">__Introducing Data__</font>
@@ -35,7 +35,7 @@ Based on aspects of building location and construction, the goal of the project 
 
 This survey is one of the largest post-disaster datasets ever collected, containing valuable information on earthquake impacts, household conditions, and socio-economic-demographic statistics.
 The data was initially dumped in GitHub and then imported into R and converted into dataframe.
-```{r S3, eval = TRUE, echo = FALSE, include = FALSE, message=FALSE}
+```{r S3, eval = TRUE, include = FALSE, message=FALSE}
 EQ_Train_Values = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_values.csv"), header = TRUE)
 EQ_Train_Labels = read.csv(text = getURL("https://raw.githubusercontent.com/kishore4394/Nepal_EarthQuake/master/train_labels.csv"), header = TRUE)
 EQ_Train_Dataset = merge(EQ_Train_Values, EQ_Train_Labels, by = "building_id")
@@ -72,55 +72,16 @@ count_families | Integer | Number of families in the building
 superstructure_material_type | Categorical | different types of materials used for building to built
 secondary_use | Categorical | Secondary use of the building
 
-```{r, eval = TRUE, echo = FALSE}
-EQ_Train_Dataset$land_surface_condition_numeric_values = factor(EQ_Train_Dataset$land_surface_condition, labels = c("1", "2", "3"))
-EQ_Train_Dataset$foundation_type_numeric_values = factor(EQ_Train_Dataset$foundation_type, labels = c("1", "2", "3", "4", "5"))
-EQ_Train_Dataset$roof_type_numeric_values = factor(EQ_Train_Dataset$roof_type, labels = c("1", "2", "3"))
-EQ_Train_Dataset$ground_floor_type_numeric_values = factor(EQ_Train_Dataset$ground_floor_type, labels = c("1", "2", "3", "4", "5"))
-EQ_Train_Dataset$other_floor_type_numeric_values = factor(EQ_Train_Dataset$other_floor_type, labels = c("1", "2", "3", "4"))
-EQ_Train_Dataset$position_numeric_values = factor(EQ_Train_Dataset$position, labels = c("1", "2", "3", "4"))
-EQ_Train_Dataset$plan_configuration_numeric_values = factor(EQ_Train_Dataset$plan_configuration, labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
+```{r, eval = TRUE, include=FALSE}
 
-# re-arranged the columns to make it meaningful
-EQ_Train_Dataset = EQ_Train_Dataset[,c(1,2,3,4,5,6,7,8,9,41,10,42,11,43,12,44,13,45,14,46,15,47,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40)]
-
-# convert all the categorical values into numerical values to find the correlation with the damage_grade
-EQ_Train_Dataset$land_surface_condition_numeric_values = as.numeric(EQ_Train_Dataset$land_surface_condition_numeric_values)
-EQ_Train_Dataset$foundation_type_numeric_values = as.numeric(EQ_Train_Dataset$foundation_type_numeric_values)
-EQ_Train_Dataset$roof_type_numeric_values = as.numeric(EQ_Train_Dataset$roof_type_numeric_values)
-EQ_Train_Dataset$ground_floor_type_numeric_values = as.numeric(EQ_Train_Dataset$ground_floor_type_numeric_values)
-EQ_Train_Dataset$other_floor_type_numeric_values = as.numeric(EQ_Train_Dataset$other_floor_type_numeric_values)
-EQ_Train_Dataset$position_numeric_values = as.numeric(EQ_Train_Dataset$position_numeric_values)
-EQ_Train_Dataset$plan_configuration_numeric_values = as.numeric(EQ_Train_Dataset$plan_configuration_numeric_values)
-
-EQ_Train_Dataset$superstructure_material_type = ifelse(EQ_Train_Dataset$has_superstructure_adobe_mud == "1", "Adobe and Mud",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_mud_mortar_stone == "1", "Mud, Mortar and Stone",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_stone_flag == "1", "Stone",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_cement_mortar_stone == "1", "Cement, Mortar and Stone",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_bamboo == "1", "Bamboo",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_cement_mortar_brick == "1", "Cement, Mortar and Brick",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_mud_mortar_brick == "1", "Mud, Mortar and Brick",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_timber == "1", "Timber",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_rc_engineered == "1", "RC Engineered Reinforced Steel",
-                                                ifelse(EQ_Train_Dataset$has_superstructure_rc_non_engineered == "1", "RC Non-Engineered Reinforced Steel","Other Material Type"))))))))))
-
-EQ_Train_Dataset$has_superstructure_adobe_mud = NULL
-EQ_Train_Dataset$has_superstructure_bamboo = NULL
-EQ_Train_Dataset$has_superstructure_cement_mortar_brick = NULL
-EQ_Train_Dataset$has_superstructure_cement_mortar_stone = NULL
-EQ_Train_Dataset$has_superstructure_mud_mortar_brick = NULL
-EQ_Train_Dataset$has_superstructure_mud_mortar_stone = NULL
-EQ_Train_Dataset$has_superstructure_other = NULL
-EQ_Train_Dataset$has_superstructure_rc_engineered = NULL
-EQ_Train_Dataset$has_superstructure_rc_non_engineered = NULL
-EQ_Train_Dataset$has_superstructure_stone_flag = NULL
-EQ_Train_Dataset$has_superstructure_timber = NULL
+EQ_Train_Dataset$numberOfMaterialUsed = rowSums(EQ_Train_Dataset[,16:26])
+EQ_Train_Dataset$timesOfSecondaryUse = rowSums(EQ_Train_Dataset[,30:39])
 
 EQ_Train_Dataset$Secondary_use = ifelse(EQ_Train_Dataset$has_secondary_use == "1", 
-                                 ifelse(EQ_Train_Dataset$has_secondary_use_agriculture == "1", "Agriculture",
+                                 ifelse(EQ_Train_Dataset$has_secondary_use_agriculture == "1", ifelse(EQ_Train_Dataset$has_secondary_use_other == "1", "Agriculture and Other Use", "Agriculture"),
                                  ifelse(EQ_Train_Dataset$has_secondary_use_gov_office == "1", "Government office",
                                  ifelse(EQ_Train_Dataset$has_secondary_use_health_post == "1", "Health Post",
-                                 ifelse(EQ_Train_Dataset$has_secondary_use_hotel == "1", "Hotel",
+                                 ifelse(EQ_Train_Dataset$has_secondary_use_hotel == "1", ifelse(EQ_Train_Dataset$has_secondary_use_other == "1" ,"Hotel and Other Use", "Hotel"),
                                  ifelse(EQ_Train_Dataset$has_secondary_use_industry == "1", "Industry",
                                  ifelse(EQ_Train_Dataset$has_secondary_use_institution == "1", "Institution",
                                  ifelse(EQ_Train_Dataset$has_secondary_use_rental == "1", "Rental",
@@ -139,41 +100,176 @@ EQ_Train_Dataset$has_secondary_use_rental = NULL
 EQ_Train_Dataset$has_secondary_use_school = NULL
 EQ_Train_Dataset$has_secondary_use_use_police = NULL
 
+colnames(EQ_Train_Dataset)[16] = "Adobe Mud"
+colnames(EQ_Train_Dataset)[17] = "Mud Mortar Stone"
+colnames(EQ_Train_Dataset)[18] = "Stone Flag"
+colnames(EQ_Train_Dataset)[19] = "Cement Mortar Stone"
+colnames(EQ_Train_Dataset)[20] = "Mud Mortar Brick"
+colnames(EQ_Train_Dataset)[21] = "Cement Mortar Brick"
+colnames(EQ_Train_Dataset)[22] = "Timber"
+colnames(EQ_Train_Dataset)[23] = "Bamboo"
+colnames(EQ_Train_Dataset)[24] = "RC Non Engineered"
+colnames(EQ_Train_Dataset)[25] = "RC Engineered"
+colnames(EQ_Train_Dataset)[26] = "Other Material Type"
+
+dt = EQ_Train_Dataset[,c("building_id", "Adobe Mud", "Mud Mortar Stone", "Stone Flag", "Cement Mortar Stone", "Mud Mortar Brick", "Cement Mortar Brick", "Timber", "Bamboo", "RC Non Engineered", "RC Engineered", "Other Material Type")] 
+setDT(dt)[, rownum:=1:.N, ]
+dt$superstructure_Material_Type <- melt(dt, "rownum")[,toString(variable[value==1]), rownum]$V1
+EQ_Train_Dataset = merge(EQ_Train_Dataset, dt, by = "building_id")
+
+EQ_Train_Dataset$`Adobe Mud.x` = NULL
+EQ_Train_Dataset$`Mud Mortar Stone.x` = NULL
+EQ_Train_Dataset$`Stone Flag.x` = NULL
+EQ_Train_Dataset$`Cement Mortar Stone.x` = NULL
+EQ_Train_Dataset$`Mud Mortar Brick.x` = NULL
+EQ_Train_Dataset$`Cement Mortar Brick.x` = NULL
+EQ_Train_Dataset$Timber.x = NULL
+EQ_Train_Dataset$Bamboo.x = NULL
+EQ_Train_Dataset$`RC Non Engineered.x` = NULL
+EQ_Train_Dataset$`RC Engineered.x` = NULL
+EQ_Train_Dataset$`Other Material Type.x` = NULL
+
+EQ_Train_Dataset$`Adobe Mud.y` = NULL
+EQ_Train_Dataset$`Mud Mortar Stone.y` = NULL
+EQ_Train_Dataset$`Stone Flag.y` = NULL
+EQ_Train_Dataset$`Cement Mortar Stone.y` = NULL
+EQ_Train_Dataset$`Mud Mortar Brick.y` = NULL
+EQ_Train_Dataset$`Cement Mortar Brick.y` = NULL
+EQ_Train_Dataset$Timber.y = NULL
+EQ_Train_Dataset$Bamboo.y = NULL
+EQ_Train_Dataset$`RC Non Engineered.y` = NULL
+EQ_Train_Dataset$`RC Engineered.y` = NULL
+EQ_Train_Dataset$`Other Material Type.y` = NULL
+
+EQ_Train_Dataset$rownum = NULL
+EQ_Train_Dataset[1,22] = "Mud Mortar Stone"
+
+EQ_Train_Dataset$superstructure_Material_Type = factor(EQ_Train_Dataset$superstructure_Material_Type)
+
+One_Material_Used_Dataset = filter(EQ_Train_Dataset, EQ_Train_Dataset$numberOfMaterialUsed == 1)
+More_Material_Used_Dataset = filter(EQ_Train_Dataset, EQ_Train_Dataset$numberOfMaterialUsed != 1)
+
+EQ_Train_Dataset = EQ_Train_Dataset[,c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,20,21,22,18)]
+
+EQ_Train_Dataset$geo_level_1_id = factor(EQ_Train_Dataset$geo_level_1_id)
+EQ_Train_Dataset$geo_level_2_id = factor(EQ_Train_Dataset$geo_level_2_id)
+EQ_Train_Dataset$geo_level_3_id = factor(EQ_Train_Dataset$geo_level_3_id)
+EQ_Train_Dataset$land_surface_condition = factor(EQ_Train_Dataset$land_surface_condition)
+EQ_Train_Dataset$foundation_type = factor(EQ_Train_Dataset$foundation_type)
+EQ_Train_Dataset$roof_type = factor(EQ_Train_Dataset$roof_type)
 EQ_Train_Dataset$Secondary_use = factor(EQ_Train_Dataset$Secondary_use)
-EQ_Train_Dataset$superstructure_material_type = factor(EQ_Train_Dataset$superstructure_material_type)
-EQ_Train_Dataset$Secondary_use_numeric_values = factor(EQ_Train_Dataset$Secondary_use, labels = c("1","2","3","4","5","6","7","8","9","10","11"))
-EQ_Train_Dataset$superstructure_material_type_numeric_values = factor(EQ_Train_Dataset$superstructure_material_type, labels = c("1","2","3","4","5","6","7","8","9","10","11"))
-EQ_Train_Dataset$Secondary_use_numeric_values = as.numeric(EQ_Train_Dataset$Secondary_use_numeric_values)
-EQ_Train_Dataset$superstructure_material_type_numeric_values = as.numeric(EQ_Train_Dataset$superstructure_material_type_numeric_values)
-
-EQ_Train_Dataset = EQ_Train_Dataset[,c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,26,29,27,28,23,24,25)]
-```
-<!-- __Cleaning of dataset is done__ -->
- <!-- Here are some sample records -->
-```{r, eval = TRUE, include = FALSE}
-print(head(EQ_Train_Dataset, 5))
+EQ_Train_Dataset$superstructure_Material_Type = factor(EQ_Train_Dataset$superstructure_Material_Type)
+EQ_Train_Dataset$damage_grade = factor(EQ_Train_Dataset$damage_grade)
+rm(dt, EQ_Train_Labels, EQ_Train_Values)
 ```
 
-### <font color="FireBrick">__Correlation between other variables and damage grade__</font>
+ Data Cleaning of data is done, Now starting the Data mining and Association analysis
+ 
+### <font color="FireBrick"> __Association Analysis__</font>
 ```{r, eval = TRUE, echo = FALSE}
-x = EQ_Train_Dataset[,c("superstructure_material_type_numeric_values","Secondary_use_numeric_values","count_floors_pre_eq","area","height","land_surface_condition_numeric_values", "foundation_type_numeric_values", "roof_type_numeric_values", "ground_floor_type_numeric_values", "other_floor_type_numeric_values", "position_numeric_values", "plan_configuration_numeric_values")]
-y = EQ_Train_Dataset[,c("damage_grade")]
+dt = data.frame(table(EQ_Train_Dataset$superstructure_Material_Type))
+dt = filter(dt, dt$Freq > 50)
+dt1 = EQ_Train_Dataset[EQ_Train_Dataset$superstructure_Material_Type %in% dt$Var1,]
+```
+
+```{r, eval=TRUE}
+ggplot(data = dt1) + geom_bar(mapping = aes(x = superstructure_Material_Type, fill = damage_grade)) + ggtitle("Building Material vs Damage level vs Count") + xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, eval=TRUE, include=FALSE}
+Low_damage_dataset = filter(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 1)
+Medium_damage_dataset = filter(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 2)
+High_damage_dataset = filter(EQ_Train_Dataset, EQ_Train_Dataset$damage_grade == 3)
+```
+
+### <font color="FireBrick">__Association Analysis in Low damaged dataset__</font>
+```{r, eval=TRUE, include=FALSE, message=FALSE}
+categorical_columns = Low_damage_dataset[,c("land_surface_condition", "foundation_type", "roof_type", "Secondary_use", "superstructure_Material_Type")]
+association= eclat(categorical_columns,parameter = list(supp = 0.5, maxlen = 100))
+```
+
+```{r, eval=TRUE, echo=FALSE}
+inspect(association)
+```
+
+### <font color="FireBrick">__Association Analysis in Low damaged dataset__</font>
+```{r, eval=TRUE, include=FALSE}
+categorical_columns = Medium_damage_dataset[,c("land_surface_condition", "foundation_type", "roof_type", "Secondary_use", "superstructure_Material_Type")]
+association= eclat(categorical_columns,parameter = list(supp = 0.5, maxlen = 100))
+```
+
+```{r, eval=TRUE, echo=FALSE}
+inspect(association)
+```
+
+### <font color="FireBrick">__Association Analysis in Low damaged dataset__</font>
+```{r, eval=TRUE, include=FALSE}
+categorical_columns = High_damage_dataset[,c("land_surface_condition", "foundation_type", "roof_type", "Secondary_use", "superstructure_Material_Type")]
+association= eclat(categorical_columns,parameter = list(supp = 0.5, maxlen = 100))
+```
+
+```{r, eval=TRUE, echo=FALSE}
+inspect(association)
+```
+
+Based on the Association analysis the important variables that heavily depend on the damage grade are </br>
+
+1. Land surface condition</br>
+2. Foundation type </br>
+3. Roof type </br>
+4. Secondary use of the building
+5. Super structure material used in the building </br>
+
+```{r, eval=TRUE, echo=FALSE}
+Processed_Dataset = EQ_Train_Dataset[,c("building_id", "geo_level_1_id", "geo_level_2_id", "land_surface_condition", "foundation_type", "roof_type", "Secondary_use", "superstructure_Material_Type", "damage_grade")]
+```
+
+### <font color="FireBrick">__Correlation between the Training variables and Target Variable__</font>
+```{r, eval=TRUE, echo=FALSE}
+dt = Processed_Dataset
+dt$land_surface_condition = as.numeric(dt$land_surface_condition)
+dt$foundation_type = as.numeric(dt$foundation_type)
+dt$roof_type = as.numeric(dt$roof_type)
+dt$Secondary_use = as.numeric(dt$Secondary_use)
+dt$geo_level_1_id = as.numeric(dt$geo_level_1_id)
+dt$geo_level_2_id = as.numeric(dt$geo_level_2_id)
+dt$superstructure_Material_Type = as.numeric(dt$superstructure_Material_Type)
+dt$damage_grade = as.numeric(dt$damage_grade)
+x = dt[,c("geo_level_1_id", "geo_level_2_id", "land_surface_condition", "foundation_type", "roof_type", "Secondary_use", "superstructure_Material_Type")]
+y = dt[,c("damage_grade")]
 cor(x, y)
 
-EQ_Train_Dataset$land_surface_condition_numeric_values = NULL
-EQ_Train_Dataset$foundation_type_numeric_values = NULL
-EQ_Train_Dataset$roof_type_numeric_values = NULL
-EQ_Train_Dataset$ground_floor_type_numeric_values = NULL
-EQ_Train_Dataset$other_floor_type_numeric_values = NULL
-EQ_Train_Dataset$position_numeric_values = NULL
-EQ_Train_Dataset$plan_configuration_numeric_values = NULL
-EQ_Train_Dataset$superstructure_material_type_numeric_values = NULL
-EQ_Train_Dataset$Secondary_use_numeric_values = NULL
-
-EQ_Train_Dataset$damage_level_name = ifelse(EQ_Train_Dataset$damage_grade == "1", "Lowest Damage",
-                                     ifelse(EQ_Train_Dataset$damage_grade == "2", "Medium Damage", "Almost Destroyed"))
+rm(One_Material_Used_Dataset, More_Material_Used_Dataset, Low_damage_dataset, Medium_damage_dataset, High_damage_dataset, dt, dt1, association, categorical_columns)
 ```
-### <font color="FireBrick">__Data Visualization__</font>
-```{r, eval = TRUE, echo = FALSE}
-ggplot(data = EQ_Train_Dataset) + geom_bar(mapping = aes(x = superstructure_material_type, fill = damage_level_name)) + ggtitle("Building Material vs Damage level vs Count") + xlab("Material Type") + ylab("Count") + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+
+### <font color="FireBrick">__Processed Data__</font>
+```{r, eval=TRUE, echo=FALSE}
+head(Processed_Dataset, 3)
+```
+ 
+### <font color="FireBrick">__Summary about the Processed data__</font>
+```{r, eval=TRUE, echo=FALSE}
+Percentage_distribution_damage_level = prop.table(table(Processed_Dataset$damage_grade))*100
+summary(Processed_Dataset)
+```
+
+<!-- ### <font color="FireBrick">__Prediction__</font> -->
+```{r, eval=FALSE, echo=FALSE}
+split_index = createDataPartition(y = Processed_Dataset$damage_grade, p = 0.7, list = FALSE)
+train_data = Processed_Dataset[split_index,]
+test_data = Processed_Dataset[-split_index,]
+
+set.seed(54321)
+trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
+set.seed(3033)
+model = caret::train(damage_grade ~ ., data = train_data, method = "svmLinear", trControl = trctrl, preProcess = c("center","scale"), tuneLength = 10)
+# testing_prediction = round(predict(model, newdata = test_data))
+# #testing_prediction[testing_prediction==-1] = 0
+# confusionMatrix(testing_prediction, test_data$damage_grade)
+# dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "rpart", parms = list(split = "information"),)
+# prediction = round(predict(dtree_fit, newdata = test_data))
+# confusionMatrix(prediction, test_data$damage_grade)
+#dtree_fit = caret::train(damage_grade ~ ., data = train_data, method = "M5", trControl = trctrl, tuneLength = 10)
+prediction = predict(dtree_fit, newdata = test_data)
+confusionMatrix(prediction, test_data$damage_grade)
 ```
